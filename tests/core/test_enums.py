@@ -32,3 +32,24 @@ class TestSortOrder:
     def test_member_count(self):
         """SortOrder에 정확히 2개의 멤버가 있는지 확인합니다."""
         assert len(SortOrder) == 2
+
+class TestSortMissing:
+    """SortMissing 열거형 테스트."""
+
+    def test_first_value(self):
+        """FIRST의 값이 '_first'인지 확인합니다."""
+        assert SortMissing.FIRST.value == "_first"
+
+    def test_last_value(self):
+        """LAST의 값이 '_last'인지 확인합니다."""
+        assert SortMissing.LAST.value == "_last"
+
+    def test_is_string_enum(self):
+        """SortMissing이 str 열거형이어서 문자열로 직접 사용 가능한지 확인합니다."""
+        assert isinstance(SortMissing.FIRST, str)
+        assert SortMissing.FIRST == "_first"
+        assert SortMissing.LAST == "_last"
+
+    def test_member_count(self):
+        """SortMissing에 정확히 2개의 멤버가 있는지 확인합니다."""
+        assert len(SortMissing) == 2
