@@ -1,6 +1,4 @@
-import pytest
 from elastic_query_builder.core.enums import SortOrder, SortMissing, BoolClause
-from oauthlib.uri_validate import query
 
 """core/enums.py에 대한 단위 테스트.
 
