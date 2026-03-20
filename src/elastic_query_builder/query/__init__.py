@@ -12,6 +12,8 @@ from elastic_query_builder.query.leaf import (
 from elastic_query_builder.query.compound import BoolQueryBuilder, DisMaxQuery
 from elastic_query_builder.query.span import SpanTermQuery, SpanNearQuery
 from elastic_query_builder.query.nested import NestedQuery
+from elastic_query_builder.query.has_child import HasChildQuery
+from elastic_query_builder.query.has_parent import HasParentQuery
 
 __all__ = [
     "TermQuery", "TermsQuery", "MatchQuery", "MatchPhraseQuery",
@@ -20,4 +22,5 @@ __all__ = [
     "BoolQueryBuilder", "DisMaxQuery",
     "SpanTermQuery", "SpanNearQuery",
     "NestedQuery",
+    "HasChildQuery", "HasParentQuery",
 ]

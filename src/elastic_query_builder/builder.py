@@ -9,16 +9,32 @@ from typing import Any, Dict, List, Optional, Union
 from elastic_query_builder.core.enums import SortOrder, SortMissing
 from elastic_query_builder.query.leaf.term import TermQuery, TermsQuery
 from elastic_query_builder.query.leaf.match import MatchQuery, MatchPhraseQuery
+from elastic_query_builder.query.leaf.multi_match import MultiMatchQuery
+from elastic_query_builder.query.leaf.match_phrase_prefix import MatchPhrasePrefixQuery
+from elastic_query_builder.query.leaf.match_bool_prefix import MatchBoolPrefixQuery
 from elastic_query_builder.query.leaf.range import RangeQuery
 from elastic_query_builder.query.leaf.wildcard import WildcardQuery
+from elastic_query_builder.query.leaf.fuzzy import FuzzyQuery
+from elastic_query_builder.query.leaf.prefix import PrefixQuery
+from elastic_query_builder.query.leaf.regexp import RegexpQuery
 from elastic_query_builder.query.leaf.exists import ExistsQuery
 from elastic_query_builder.query.leaf.ids import IdsQuery
 from elastic_query_builder.query.leaf.special import MatchAllQuery, MatchNoneQuery
+from elastic_query_builder.query.leaf.terms_set import TermsSetQuery
+from elastic_query_builder.query.leaf.query_string import QueryStringQuery
+from elastic_query_builder.query.leaf.simple_query_string import SimpleQueryStringQuery
+from elastic_query_builder.query.leaf.combined_fields import CombinedFieldsQuery
+from elastic_query_builder.query.leaf.intervals import IntervalsQuery
 from elastic_query_builder.query.compound.bool_query import BoolQueryBuilder
 from elastic_query_builder.query.compound.dis_max import DisMaxQuery
+from elastic_query_builder.query.compound.constant_score import ConstantScoreQuery
+from elastic_query_builder.query.compound.boosting import BoostingQuery
+from elastic_query_builder.query.compound.function_score import FunctionScoreQuery
 from elastic_query_builder.query.span.span_term import SpanTermQuery
 from elastic_query_builder.query.span.span_near import SpanNearQuery
 from elastic_query_builder.query.nested import NestedQuery
+from elastic_query_builder.query.has_child import HasChildQuery
+from elastic_query_builder.query.has_parent import HasParentQuery
 from elastic_query_builder.aggregation.aggregation_builder import AggregationBuilder
 from elastic_query_builder.sort.sort_builder import SortBuilder
 
@@ -48,17 +64,33 @@ class QueryBuilder:
     Terms = TermsQuery
     Match = MatchQuery
     MatchPhrase = MatchPhraseQuery
+    MultiMatch = MultiMatchQuery
+    MatchPhrasePrefix = MatchPhrasePrefixQuery
+    MatchBoolPrefix = MatchBoolPrefixQuery
     Range = RangeQuery
     Wildcard = WildcardQuery
+    Fuzzy = FuzzyQuery
+    Prefix = PrefixQuery
+    Regexp = RegexpQuery
     Exists = ExistsQuery
     Ids = IdsQuery
     MatchAll = MatchAllQuery
     MatchNone = MatchNoneQuery
     Bool = BoolQueryBuilder
     DisMax = DisMaxQuery
+    ConstantScore = ConstantScoreQuery
+    Boosting = BoostingQuery
     SpanTerm = SpanTermQuery
     SpanNear = SpanNearQuery
     Nested = NestedQuery
+    HasChild = HasChildQuery
+    HasParent = HasParentQuery
+    TermsSet = TermsSetQuery
+    QueryString = QueryStringQuery
+    SimpleQueryString = SimpleQueryStringQuery
+    CombinedFields = CombinedFieldsQuery
+    FunctionScore = FunctionScoreQuery
+    Intervals = IntervalsQuery
 
     def __init__(self):
         self._query: Optional[Dict[str, Any]] = None
