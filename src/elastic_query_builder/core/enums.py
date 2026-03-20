@@ -26,3 +26,36 @@ class BoolClause(str, Enum):
     SHOULD = "should"
     MUST_NOT = "must_not"
     FILTER = "filter"
+
+
+class MultiMatchType(str, Enum):
+    """multi_match 쿼리의 타입을 나타내는 열거형."""
+
+    BEST_FIELDS = "best_fields"
+    MOST_FIELDS = "most_fields"
+    CROSS_FIELDS = "cross_fields"
+    PHRASE = "phrase"
+    PHRASE_PREFIX = "phrase_prefix"
+    BOOL_PREFIX = "bool_prefix"
+
+
+class FunctionScoreMode(str, Enum):
+    """function_score 쿼리의 score_mode를 나타내는 열거형."""
+
+    MULTIPLY = "multiply"
+    SUM = "sum"
+    AVG = "avg"
+    FIRST = "first"
+    MAX = "max"
+    MIN = "min"
+
+
+class FunctionBoostMode(str, Enum):
+    """function_score 쿼리의 boost_mode를 나타내는 열거형."""
+
+    MULTIPLY = "multiply"
+    REPLACE = "replace"
+    SUM = "sum"
+    AVG = "avg"
+    MAX = "max"
+    MIN = "min"
