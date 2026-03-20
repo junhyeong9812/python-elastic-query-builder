@@ -18,7 +18,10 @@ Elasticsearch 검색 요청을 타입 안전하고 메서드 체이닝 방식으
 """
 
 from elastic_query_builder.builder import QueryBuilder
-from elastic_query_builder.core.enums import SortOrder, SortMissing, BoolClause
+from elastic_query_builder.core.enums import (
+    SortOrder, SortMissing, BoolClause,
+    MultiMatchType, FunctionScoreMode, FunctionBoostMode,
+)
 from elastic_query_builder.query.compound.bool_query import BoolQueryBuilder
 from elastic_query_builder.aggregation.aggregation_builder import AggregationBuilder
 from elastic_query_builder.sort.sort_builder import SortBuilder
@@ -26,5 +29,6 @@ from elastic_query_builder.sort.sort_builder import SortBuilder
 __all__ = [
     "QueryBuilder",
     "SortOrder", "SortMissing", "BoolClause",
+    "MultiMatchType", "FunctionScoreMode", "FunctionBoostMode",
     "BoolQueryBuilder", "AggregationBuilder", "SortBuilder",
 ]
