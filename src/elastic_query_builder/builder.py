@@ -124,6 +124,14 @@ class QueryBuilder:
         self._post_filter: Optional[Dict[str, Any]] = None
         self._suggest: Optional[Dict[str, Any]] = None
         self._knn: Optional[Dict[str, Any]] = None
+        self._collapse: Optional[Dict[str, Any]] = None
+        self._search_after: Optional[List[Any]] = None
+        self._rescore: Optional[List[Dict[str, Any]]] = None
+        self._indices_boost: Optional[List[Dict[str, float]]] = None
+        self._explain: Optional[bool] = None
+        self._script_fields: Optional[Dict[str, Any]] = None
+        self._fields: Optional[List[Any]] = None
+        self._stored_fields: Optional[List[str]] = None
 
     # ── Bool Query 관리 ──
 
@@ -332,6 +340,83 @@ class QueryBuilder:
             self._knn["boost"] = boost
         return self
 
+    # ── Collapse ──
+
+    def set_collapse(self, field: str, inner_hits: Optional[Dict[str, Any]] = None,
+                     max_concurrent_group_searches: Optional[int] = None) -> 'QueryBuilder':
+        """필드 기준 결과 축소(중복 제거)를 설정합니다."""
+        self._collapse = {"field": field}
+        if inner_hits is not None:
+            self._collapse["inner_hits"] = inner_hits
+        if max_concurrent_group_searches is not None:
+            self._collapse["max_concurrent_group_searches"] = max_concurrent_group_searches
+        return self
+
+    # ── Search After ──
+
+    def set_search_after(self, values: List[Any]) -> 'QueryBuilder':
+        """커서 기반 딥 페이지네이션을 위한 search_after를 설정합니다."""
+        self._search_after = values
+        return self
+
+    # ── Rescore ──
+
+    def add_rescore(self, rescore: Dict[str, Any]) -> 'QueryBuilder':
+        """재스코어링 설정을 추가합니다."""
+        if self._rescore is None:
+            self._rescore = []
+        self._rescore.append(rescore)
+        return self
+
+    def set_rescore(self, rescore: List[Dict[str, Any]]) -> 'QueryBuilder':
+        """재스코어링 설정을 교체합니다."""
+        self._rescore = list(rescore)
+        return self
+
+    # ── Indices Boost ──
+
+    def add_indices_boost(self, index: str, boost: float) -> 'QueryBuilder':
+        """인덱스별 부스트를 추가합니다."""
+        if self._indices_boost is None:
+            self._indices_boost = []
+        self._indices_boost.append({index: boost})
+        return self
+
+    # ── Explain ──
+
+    def set_explain(self, explain: bool) -> 'QueryBuilder':
+        """스코어링 설명을 활성화/비활성화합니다."""
+        self._explain = explain
+        return self
+
+    # ── Script Fields ──
+
+    def set_script_fields(self, script_fields: Dict[str, Any]) -> 'QueryBuilder':
+        """스크립트 계산 필드를 설정합니다."""
+        self._script_fields = script_fields
+        return self
+
+    def add_script_field(self, name: str, script: Dict[str, Any]) -> 'QueryBuilder':
+        """스크립트 계산 필드를 추가합니다."""
+        if self._script_fields is None:
+            self._script_fields = {}
+        self._script_fields[name] = {"script": script}
+        return self
+
+    # ── Fields ──
+
+    def set_fields(self, fields: List[Any]) -> 'QueryBuilder':
+        """반환할 필드 목록을 설정합니다."""
+        self._fields = fields
+        return self
+
+    # ── Stored Fields ──
+
+    def set_stored_fields(self, fields: List[str]) -> 'QueryBuilder':
+        """반환할 stored_fields를 설정합니다."""
+        self._stored_fields = fields
+        return self
+
     # ── Sort 관리 ──
 
     def add_sort(
@@ -503,6 +588,38 @@ class QueryBuilder:
         # KNN
         if self._knn is not None:
             result["knn"] = self._knn
+
+        # Collapse
+        if self._collapse is not None:
+            result["collapse"] = self._collapse
+
+        # Search after
+        if self._search_after is not None:
+            result["search_after"] = self._search_after
+
+        # Rescore
+        if self._rescore is not None:
+            result["rescore"] = self._rescore
+
+        # Indices boost
+        if self._indices_boost is not None:
+            result["indices_boost"] = self._indices_boost
+
+        # Explain
+        if self._explain is not None:
+            result["explain"] = self._explain
+
+        # Script fields
+        if self._script_fields is not None:
+            result["script_fields"] = self._script_fields
+
+        # Fields
+        if self._fields is not None:
+            result["fields"] = self._fields
+
+        # Stored fields
+        if self._stored_fields is not None:
+            result["stored_fields"] = self._stored_fields
 
         # Aggregations
         if self._agg_builder is not None and not self._agg_builder.is_empty():
