@@ -50,45 +50,57 @@
 
 ## 작업 순서
 
+> **상태**: 모든 마이그레이션 단계 완료 (2026-03-20)
+
 ### Step 1: 프로젝트 기반 구성
-- [ ] pyproject.toml 작성
-- [ ] 디렉토리 구조 생성
-- [ ] .gitignore 작성
+- [x] pyproject.toml 작성
+- [x] 디렉토리 구조 생성
+- [x] .gitignore 작성
 
 ### Step 2: Core 도메인 이전
-- [ ] core/enums.py
-- [ ] core/types.py
-- [ ] tests/core/test_enums.py
+- [x] core/enums.py (SortOrder, SortMissing, BoolClause, MultiMatchType, FunctionScoreMode, FunctionBoostMode)
+- [x] core/types.py (ESQuery, ESAggregation, ESSort)
+- [x] tests/core/test_enums.py
 
 ### Step 3: Query Leaf 이전
-- [ ] query/leaf/*.py (각 쿼리 클래스)
-- [ ] tests/query/leaf/*.py
+- [x] query/leaf/*.py — 20개 쿼리 클래스 구현
+- [x] tests/query/leaf/*.py
 
 ### Step 4: Query Compound 이전
-- [ ] query/compound/bool_query.py
-- [ ] query/compound/dis_max.py
-- [ ] tests/query/compound/*.py
+- [x] query/compound/bool_query.py
+- [x] query/compound/dis_max.py
+- [x] query/compound/constant_score.py
+- [x] query/compound/boosting.py
+- [x] query/compound/function_score.py
+- [x] tests/query/compound/*.py
 
-### Step 5: Query Span + Nested 이전
-- [ ] query/span/*.py
-- [ ] query/nested.py
-- [ ] tests
+### Step 5: Query Span + Nested + Joining + Geo + Specialized 이전
+- [x] query/span/*.py (SpanTerm, SpanNear)
+- [x] query/nested.py, query/has_child.py, query/has_parent.py
+- [x] query/geo/*.py (GeoDistance, GeoBoundingBox)
+- [x] query/specialized/*.py (MoreLikeThis, ScriptScore, Pinned, RankFeature, Percolate)
+- [x] tests
 
 ### Step 6: Aggregation 이전
-- [ ] aggregation/bucket/*.py
-- [ ] aggregation/metric/*.py
-- [ ] aggregation/aggregation_builder.py
-- [ ] tests
+- [x] aggregation/bucket/*.py (7개 클래스)
+- [x] aggregation/metric/*.py (7개 클래스)
+- [x] aggregation/aggregation_builder.py
+- [x] tests
 
 ### Step 7: Sort 도메인 생성
-- [ ] sort/sort_builder.py (QueryBuilder에서 분리)
-- [ ] tests/sort/test_sort_builder.py
+- [x] sort/sort_builder.py (add, add_score, add_script, set, merge)
+- [x] tests/sort/test_sort_builder.py
 
 ### Step 8: QueryBuilder 통합
-- [ ] builder.py (최상위 빌더)
-- [ ] tests/test_query_builder.py (통합 테스트)
+- [x] builder.py (33개 쿼리 static 참조, 40+ 메서드)
+- [x] tests/test_query_builder.py (82 tests)
+- [x] tests/test_query_builder_features.py (highlight, post_filter, suggest)
+- [x] tests/test_query_builder_features2.py (collapse, search_after, rescore)
+- [x] tests/test_query_builder_features3.py (indices_boost, explain, script_fields, fields, stored_fields)
+- [x] tests/test_knn.py (KNN 지원)
 
 ### Step 9: 패키지 마무리
-- [ ] __init__.py 공개 API 정리
-- [ ] README.md 작성
-- [ ] 전체 테스트 통과 확인
+- [x] __init__.py 공개 API 정리
+- [x] 전체 테스트 통과 확인 (629 tests)
+- [x] PyPI 배포 (v0.1.0)
+- [x] CI/CD 구성 (GitHub Actions test + publish workflows)
