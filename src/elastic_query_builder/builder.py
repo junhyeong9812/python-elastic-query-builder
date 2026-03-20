@@ -35,6 +35,13 @@ from elastic_query_builder.query.span.span_near import SpanNearQuery
 from elastic_query_builder.query.nested import NestedQuery
 from elastic_query_builder.query.has_child import HasChildQuery
 from elastic_query_builder.query.has_parent import HasParentQuery
+from elastic_query_builder.query.geo.geo_distance import GeoDistanceQuery
+from elastic_query_builder.query.geo.geo_bounding_box import GeoBoundingBoxQuery
+from elastic_query_builder.query.specialized.percolate import PercolateQuery
+from elastic_query_builder.query.specialized.more_like_this import MoreLikeThisQuery
+from elastic_query_builder.query.specialized.script_score import ScriptScoreQuery
+from elastic_query_builder.query.specialized.pinned import PinnedQuery
+from elastic_query_builder.query.specialized.rank_feature import RankFeatureQuery
 from elastic_query_builder.aggregation.aggregation_builder import AggregationBuilder
 from elastic_query_builder.sort.sort_builder import SortBuilder
 
@@ -91,6 +98,13 @@ class QueryBuilder:
     CombinedFields = CombinedFieldsQuery
     FunctionScore = FunctionScoreQuery
     Intervals = IntervalsQuery
+    GeoDistance = GeoDistanceQuery
+    GeoBoundingBox = GeoBoundingBoxQuery
+    Percolate = PercolateQuery
+    MoreLikeThis = MoreLikeThisQuery
+    ScriptScore = ScriptScoreQuery
+    Pinned = PinnedQuery
+    RankFeature = RankFeatureQuery
 
     def __init__(self):
         self._query: Optional[Dict[str, Any]] = None
@@ -106,6 +120,10 @@ class QueryBuilder:
         self._track_total_hits: Optional[Union[bool, int]] = None
         self._track_scores: Optional[bool] = None
         self._min_score: Optional[float] = None
+        self._highlight: Optional[Dict[str, Any]] = None
+        self._post_filter: Optional[Dict[str, Any]] = None
+        self._suggest: Optional[Dict[str, Any]] = None
+        self._knn: Optional[Dict[str, Any]] = None
 
     # ── Bool Query 관리 ──
 
@@ -259,6 +277,59 @@ class QueryBuilder:
     def set_min_score(self, min_score: float) -> 'QueryBuilder':
         """최소 점수를 설정합니다."""
         self._min_score = min_score
+        return self
+
+    # ── Highlight 관리 ──
+
+    def set_highlight(self, highlight: Dict[str, Any]) -> 'QueryBuilder':
+        """하이라이트 설정을 지정합니다."""
+        self._highlight = highlight
+        return self
+
+    def add_highlight_field(self, field: str, options: Optional[Dict[str, Any]] = None) -> 'QueryBuilder':
+        """하이라이트 필드를 추가합니다."""
+        if self._highlight is None:
+            self._highlight = {"fields": {}}
+        if "fields" not in self._highlight:
+            self._highlight["fields"] = {}
+        self._highlight["fields"][field] = options if options is not None else {}
+        return self
+
+    # ── Post Filter ──
+
+    def set_post_filter(self, filter_query: Dict[str, Any]) -> 'QueryBuilder':
+        """post_filter를 설정합니다."""
+        self._post_filter = filter_query
+        return self
+
+    # ── Suggest ──
+
+    def set_suggest(self, suggest: Dict[str, Any]) -> 'QueryBuilder':
+        """suggest 설정을 지정합니다."""
+        self._suggest = suggest
+        return self
+
+    def add_suggest(self, name: str, suggest_body: Dict[str, Any]) -> 'QueryBuilder':
+        """suggest를 추가합니다."""
+        if self._suggest is None:
+            self._suggest = {}
+        self._suggest[name] = suggest_body
+        return self
+
+    # ── KNN ──
+
+    def set_knn(self, field: str, query_vector: Any, k: int, num_candidates: int,
+                filter: Optional[Dict[str, Any]] = None,
+                similarity: Optional[float] = None,
+                boost: Optional[float] = None) -> 'QueryBuilder':
+        """KNN 검색을 설정합니다."""
+        self._knn = {"field": field, "query_vector": query_vector, "k": k, "num_candidates": num_candidates}
+        if filter is not None:
+            self._knn["filter"] = filter
+        if similarity is not None:
+            self._knn["similarity"] = similarity
+        if boost is not None:
+            self._knn["boost"] = boost
         return self
 
     # ── Sort 관리 ──
@@ -416,6 +487,22 @@ class QueryBuilder:
         # Sort
         if not self._sort_builder.is_empty():
             result["sort"] = self._sort_builder.build()
+
+        # Highlight
+        if self._highlight is not None:
+            result["highlight"] = self._highlight
+
+        # Post filter
+        if self._post_filter is not None:
+            result["post_filter"] = self._post_filter
+
+        # Suggest
+        if self._suggest is not None:
+            result["suggest"] = self._suggest
+
+        # KNN
+        if self._knn is not None:
+            result["knn"] = self._knn
 
         # Aggregations
         if self._agg_builder is not None and not self._agg_builder.is_empty():

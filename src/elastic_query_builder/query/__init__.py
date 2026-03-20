@@ -14,6 +14,11 @@ from elastic_query_builder.query.span import SpanTermQuery, SpanNearQuery
 from elastic_query_builder.query.nested import NestedQuery
 from elastic_query_builder.query.has_child import HasChildQuery
 from elastic_query_builder.query.has_parent import HasParentQuery
+from elastic_query_builder.query.geo import GeoDistanceQuery, GeoBoundingBoxQuery
+from elastic_query_builder.query.specialized.percolate import PercolateQuery
+from elastic_query_builder.query.specialized import (
+    MoreLikeThisQuery, ScriptScoreQuery, PinnedQuery, RankFeatureQuery,
+)
 
 __all__ = [
     "TermQuery", "TermsQuery", "MatchQuery", "MatchPhraseQuery",
@@ -23,4 +28,7 @@ __all__ = [
     "SpanTermQuery", "SpanNearQuery",
     "NestedQuery",
     "HasChildQuery", "HasParentQuery",
+    "GeoDistanceQuery", "GeoBoundingBoxQuery",
+    "PercolateQuery",
+    "MoreLikeThisQuery", "ScriptScoreQuery", "PinnedQuery", "RankFeatureQuery",
 ]
