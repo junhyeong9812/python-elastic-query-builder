@@ -5,6 +5,7 @@ Elasticsearch 검색 요청 딕셔너리를 생성합니다.
 라이브러리의 핵심 진입점입니다.
 """
 
+import copy
 from typing import Any, Dict, List, Optional, Union
 from elastic_query_builder.core.enums import SortOrder, SortMissing
 from elastic_query_builder.query.leaf.term import TermQuery, TermsQuery
@@ -291,7 +292,7 @@ class QueryBuilder:
 
     def set_highlight(self, highlight: Dict[str, Any]) -> 'QueryBuilder':
         """하이라이트 설정을 지정합니다."""
-        self._highlight = highlight
+        self._highlight = copy.deepcopy(highlight)
         return self
 
     def add_highlight_field(self, field: str, options: Optional[Dict[str, Any]] = None) -> 'QueryBuilder':
@@ -307,21 +308,21 @@ class QueryBuilder:
 
     def set_post_filter(self, filter_query: Dict[str, Any]) -> 'QueryBuilder':
         """post_filter를 설정합니다."""
-        self._post_filter = filter_query
+        self._post_filter = copy.deepcopy(filter_query)
         return self
 
     # ── Suggest ──
 
     def set_suggest(self, suggest: Dict[str, Any]) -> 'QueryBuilder':
         """suggest 설정을 지정합니다."""
-        self._suggest = suggest
+        self._suggest = copy.deepcopy(suggest)
         return self
 
     def add_suggest(self, name: str, suggest_body: Dict[str, Any]) -> 'QueryBuilder':
         """suggest를 추가합니다."""
         if self._suggest is None:
             self._suggest = {}
-        self._suggest[name] = suggest_body
+        self._suggest[name] = copy.deepcopy(suggest_body)
         return self
 
     # ── KNN ──
@@ -333,7 +334,7 @@ class QueryBuilder:
         """KNN 검색을 설정합니다."""
         self._knn = {"field": field, "query_vector": query_vector, "k": k, "num_candidates": num_candidates}
         if filter is not None:
-            self._knn["filter"] = filter
+            self._knn["filter"] = copy.deepcopy(filter)
         if similarity is not None:
             self._knn["similarity"] = similarity
         if boost is not None:
@@ -347,7 +348,7 @@ class QueryBuilder:
         """필드 기준 결과 축소(중복 제거)를 설정합니다."""
         self._collapse = {"field": field}
         if inner_hits is not None:
-            self._collapse["inner_hits"] = inner_hits
+            self._collapse["inner_hits"] = copy.deepcopy(inner_hits)
         if max_concurrent_group_searches is not None:
             self._collapse["max_concurrent_group_searches"] = max_concurrent_group_searches
         return self
@@ -365,7 +366,7 @@ class QueryBuilder:
         """재스코어링 설정을 추가합니다."""
         if self._rescore is None:
             self._rescore = []
-        self._rescore.append(rescore)
+        self._rescore.append(copy.deepcopy(rescore))
         return self
 
     def set_rescore(self, rescore: List[Dict[str, Any]]) -> 'QueryBuilder':
@@ -393,7 +394,7 @@ class QueryBuilder:
 
     def set_script_fields(self, script_fields: Dict[str, Any]) -> 'QueryBuilder':
         """스크립트 계산 필드를 설정합니다."""
-        self._script_fields = script_fields
+        self._script_fields = copy.deepcopy(script_fields)
         return self
 
     def add_script_field(self, name: str, script: Dict[str, Any]) -> 'QueryBuilder':
