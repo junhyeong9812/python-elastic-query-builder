@@ -4,6 +4,7 @@ Elasticsearch의 bool 쿼리를 메서드 체이닝 방식으로 조립하는
 상태 기반(stateful) 빌더를 제공합니다.
 """
 
+import copy
 from typing import Any, Dict, List, Optional
 from elastic_query_builder.core.enums import BoolClause
 
@@ -33,7 +34,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._must.append(condition)
+        self._must.append(copy.deepcopy(condition))
         return self
 
     def add_should(self, condition: Dict[str, Any]) -> 'BoolQueryBuilder':
@@ -45,7 +46,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._should.append(condition)
+        self._should.append(copy.deepcopy(condition))
         return self
 
     def add_must_not(self, condition: Dict[str, Any]) -> 'BoolQueryBuilder':
@@ -57,7 +58,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._must_not.append(condition)
+        self._must_not.append(copy.deepcopy(condition))
         return self
 
     def add_filter(self, condition: Dict[str, Any]) -> 'BoolQueryBuilder':
@@ -69,7 +70,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._filter.append(condition)
+        self._filter.append(copy.deepcopy(condition))
         return self
 
     def add_clauses(self, *clauses: BoolClause) -> 'BoolQueryBuilder':
