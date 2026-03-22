@@ -5,6 +5,7 @@
 메서드 체이닝을 지원합니다.
 """
 
+import copy
 from typing import Any, Dict, Optional
 from elastic_query_builder.aggregation.bucket.terms import TermsAggregation
 from elastic_query_builder.aggregation.bucket.date_histogram import DateHistogramAggregation
@@ -156,4 +157,4 @@ class AggregationBuilder:
         Returns:
             집계 이름을 키로, 집계 본문을 값으로 하는 딕셔너리.
         """
-        return dict(self._aggregations)
+        return copy.deepcopy(self._aggregations)

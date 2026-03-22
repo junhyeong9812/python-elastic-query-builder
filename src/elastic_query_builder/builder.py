@@ -626,4 +626,4 @@ class QueryBuilder:
         if self._agg_builder is not None and not self._agg_builder.is_empty():
             result["aggs"] = self._agg_builder.build()
 
-        return result
+        return copy.deepcopy(result)

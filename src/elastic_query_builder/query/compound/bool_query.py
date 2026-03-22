@@ -180,13 +180,13 @@ class BoolQueryBuilder:
         """
         bool_body: Dict[str, Any] = {}
         if self._must:
-            bool_body["must"] = self._must
+            bool_body["must"] = copy.deepcopy(self._must)
         if self._should:
-            bool_body["should"] = self._should
+            bool_body["should"] = copy.deepcopy(self._should)
         if self._must_not:
-            bool_body["must_not"] = self._must_not
+            bool_body["must_not"] = copy.deepcopy(self._must_not)
         if self._filter:
-            bool_body["filter"] = self._filter
+            bool_body["filter"] = copy.deepcopy(self._filter)
         if self._minimum_should_match is not None:
             bool_body["minimum_should_match"] = self._minimum_should_match
         return {"bool": bool_body}
