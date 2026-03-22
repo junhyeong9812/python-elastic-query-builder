@@ -111,10 +111,10 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._must.extend(other._must)
-        self._should.extend(other._should)
-        self._must_not.extend(other._must_not)
-        self._filter.extend(other._filter)
+        self._must.extend(copy.deepcopy(other._must))
+        self._should.extend(copy.deepcopy(other._should))
+        self._must_not.extend(copy.deepcopy(other._must_not))
+        self._filter.extend(copy.deepcopy(other._filter))
         if other._minimum_should_match is not None:
             self._minimum_should_match = other._minimum_should_match
         return self
@@ -128,7 +128,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._must.extend(other._must)
+        self._must.extend(copy.deepcopy(other._must))
         return self
 
     def merge_should(self, other: 'BoolQueryBuilder') -> 'BoolQueryBuilder':
@@ -140,7 +140,7 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        self._should.extend(other._should)
+        self._should.extend(copy.deepcopy(other._should))
         return self
 
     def count_must(self) -> int:
