@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "elastic-query-builder"
-version = "0.1.0"
+version = "0.1.1"
 description = "A lightweight, dependency-free Elasticsearch query builder for Python"
 readme = "README.md"
 requires-python = ">=3.10"
