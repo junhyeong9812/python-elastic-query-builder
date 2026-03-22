@@ -5,7 +5,6 @@
 [![PyPI version](https://badge.fury.io/py/elastic-query-builder.svg)](https://pypi.org/project/elastic-query-builder/)
 [![Python](https://img.shields.io/pypi/pyversions/elastic-query-builder.svg)](https://pypi.org/project/elastic-query-builder/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/junhyeong9812/python-elastic-query-builder/actions/workflows/tests.yml/badge.svg)](https://github.com/junhyeong9812/python-elastic-query-builder/actions/workflows/tests.yml)
 
 A lightweight, zero-dependency Python library that brings Java's `QueryBuilders` pattern to Python. Method chaining, explicit bool clause control, and plain `dict` output — no magic, no hidden abstractions.
 
@@ -13,17 +12,53 @@ A lightweight, zero-dependency Python library that brings Java's `QueryBuilders`
 
 ## Why This Exists
 
-The official `elasticsearch-dsl` library wraps Elasticsearch queries in its own abstraction layer. That works fine for simple queries:
+### The raw dict problem
+
+Building ES queries in Python usually starts like this:
 
 ```python
-# elasticsearch-dsl — clean enough for simple cases
+query = {"query": {"bool": {"must": [], "filter": []}}}
+
+if keyword:
+    query["query"]["bool"]["must"].append(
+        {"match": {"title": {"query": keyword, "operator": "and"}}}
+    )
+
+if date_from or date_to:
+    range_q = {"range": {"date": {}}}
+    if date_from:
+        range_q["range"]["date"]["gte"] = date_from
+    if date_to:
+        range_q["range"]["date"]["lte"] = date_to
+    query["query"]["bool"]["filter"].append(range_q)
+
+if status:
+    query["query"]["bool"]["filter"].append(
+        {"term": {"status": status}}
+    )
+
+if exclude_test:
+    query["query"]["bool"].setdefault("must_not", []).append(
+        {"term": {"applicant": "test"}}
+    )
+
+query["size"] = 20
+query["sort"] = [{"date": {"order": "desc"}}]
+```
+
+When you have 10–20 fields with dynamic conditions, this becomes unreadable fast. Bracket nesting, `setdefault` calls, manual list appends — hard to review, easy to break.
+
+### The elasticsearch-dsl approach
+
+The official `elasticsearch-dsl` wraps this in its own abstraction. Simple cases look clean:
+
+```python
 s = Search().query("match", title="python").filter("term", status="active")
 ```
 
-But real-world queries aren't simple. When you need nested bool queries with mixed `must`, `should`, `filter`, and `minimum_should_match`, `dsl` forces you into deeply nested constructor calls:
+But when you need nested bool queries with mixed clauses, it forces deeply nested constructor calls:
 
 ```python
-# elasticsearch-dsl — a realistic query
 s = Search()
 s = s.query(
     Q('bool',
@@ -46,12 +81,13 @@ s = s.query(
 )
 ```
 
-At this point, `Q()` wrappers are just noise. You have to mentally parse the nesting to figure out what's in `must` vs `filter` vs `should`. It's no better than writing raw `dict` — arguably worse, because the abstraction hides the actual Elasticsearch structure behind it.
+The `Q()` wrappers become noise. You still have to mentally parse the nesting to figure out what's in `must` vs `filter` vs `should`. The abstraction hides the actual ES structure instead of making it clearer.
 
-**This library takes the opposite approach.** Instead of abstracting away the ES query DSL, it mirrors it directly with explicit, chainable methods:
+### What this library does instead
+
+Think of it like Elasticsearch's own Query DSL — but expressed as Python method chains instead of JSON nesting:
 
 ```python
-# elastic-query-builder — same query
 qb = QueryBuilder()
 
 inner = qb.nested_bool()
@@ -69,7 +105,29 @@ query = (
 )
 ```
 
-Every line tells you exactly what it does. `add_must` goes to `must`. `add_filter` goes to `filter`. No guessing, no digging through source code to understand where your clause ends up.
+Every line tells you exactly what it does. `add_must` goes to `must`. `add_filter` goes to `filter`. The structure maps directly to the ES Query DSL you already know.
+
+And dynamic conditions stay clean:
+
+```python
+qb = QueryBuilder()
+
+if keyword:
+    qb.add_must(QueryBuilder.Match.build("title", keyword, operator="and"))
+
+if date_from or date_to:
+    qb.add_filter(QueryBuilder.Range.build("date", gte=date_from, lte=date_to))
+
+if status:
+    qb.add_filter(QueryBuilder.Term.build("status", status))
+
+if exclude_test:
+    qb.add_must_not(QueryBuilder.Term.build("applicant", "test"))
+
+query = qb.build()
+```
+
+No bracket hell. No `setdefault`. No manual list management. Just add conditions and build.
 
 **This matters for code review.** Whether you wrote the query, a teammate wrote it, or an LLM generated it — someone has to verify it does what it's supposed to. Readable structure makes that verification fast.
 
