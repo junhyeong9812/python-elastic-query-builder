@@ -5,7 +5,6 @@
 [![PyPI version](https://badge.fury.io/py/elastic-query-builder.svg)](https://pypi.org/project/elastic-query-builder/)
 [![Python version](https://img.shields.io/pypi/pyversions/elastic-query-builder.svg)](https://pypi.org/project/elastic-query-builder/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/junhyeong9812/python-elastic-query-builder/actions/workflows/tests.yml/badge.svg)](https://github.com/junhyeong9812/python-elastic-query-builder/actions)
 
 Java의 `QueryBuilders` 패턴을 Python에 그대로 가져온 경량 라이브러리입니다. 메서드 체이닝, 명시적인 bool clause 제어, 그리고 plain `dict` 출력 — 마법도 없고, 숨겨진 추상화도 없습니다.
 
@@ -13,17 +12,53 @@ Java의 `QueryBuilders` 패턴을 Python에 그대로 가져온 경량 라이브
 
 ## 왜 만들었나
 
-공식 `elasticsearch-dsl`은 ES 쿼리를 자체 추상화 레이어로 감쌉니다. 간단한 쿼리에서는 문제없어요:
+### raw dict의 고통
+
+Python에서 ES 쿼리를 짜면 보통 이렇게 시작합니다:
 
 ```python
-# elasticsearch-dsl — 간단한 경우엔 깔끔함
+query = {"query": {"bool": {"must": [], "filter": []}}}
+
+if keyword:
+    query["query"]["bool"]["must"].append(
+        {"match": {"title": {"query": keyword, "operator": "and"}}}
+    )
+
+if date_from or date_to:
+    range_q = {"range": {"date": {}}}
+    if date_from:
+        range_q["range"]["date"]["gte"] = date_from
+    if date_to:
+        range_q["range"]["date"]["lte"] = date_to
+    query["query"]["bool"]["filter"].append(range_q)
+
+if status:
+    query["query"]["bool"]["filter"].append(
+        {"term": {"status": status}}
+    )
+
+if exclude_test:
+    query["query"]["bool"].setdefault("must_not", []).append(
+        {"term": {"applicant": "테스트"}}
+    )
+
+query["size"] = 20
+query["sort"] = [{"date": {"order": "desc"}}]
+```
+
+동적 조건이 10~20개쯤 되면 이건 읽을 수가 없어요. 대괄호 중첩, `setdefault` 호출, 수동 list append — 리뷰하기 어렵고, 실수하기 쉽습니다.
+
+### elasticsearch-dsl의 접근
+
+공식 `elasticsearch-dsl`은 이걸 자체 추상화로 감쌉니다. 간단한 경우엔 깔끔해요:
+
+```python
 s = Search().query("match", title="python").filter("term", status="active")
 ```
 
-하지만 실무 쿼리는 간단하지 않습니다. nested bool에 `must`, `should`, `filter`, `minimum_should_match`가 섞이면 `dsl`은 깊은 생성자 중첩을 강제합니다:
+하지만 nested bool에 여러 clause가 섞이면 깊은 생성자 중첩을 강제합니다:
 
 ```python
-# elasticsearch-dsl — 실무에서 흔한 수준의 쿼리
 s = Search()
 s = s.query(
     Q('bool',
@@ -46,12 +81,13 @@ s = s.query(
 )
 ```
 
-이 시점에서 `Q()` 래퍼는 그냥 노이즈입니다. 중첩을 머릿속으로 펼쳐야 뭐가 `must`에 있고 뭐가 `filter`에 있는지 알 수 있어요. raw `dict`를 직접 쓰는 것보다 나을 게 없고, 오히려 추상화가 실제 ES 구조를 가리고 있어서 더 나쁠 수 있습니다.
+`Q()` 래퍼가 노이즈가 됩니다. 중첩을 머릿속으로 펼쳐야 뭐가 `must`에 있고 뭐가 `filter`에 있는지 알 수 있어요. 추상화가 ES 구조를 명확하게 만드는 게 아니라 오히려 가리고 있습니다.
 
-**이 라이브러리는 반대 방향을 택했습니다.** ES 쿼리 DSL을 감추는 대신, 명시적인 체이닝 메서드로 그대로 드러냅니다:
+### 이 라이브러리의 접근
+
+ES의 Query DSL 구조를 그대로 — JSON 중첩 대신 Python 메서드 체이닝으로 표현한다고 생각하면 됩니다:
 
 ```python
-# elastic-query-builder — 같은 쿼리
 qb = QueryBuilder()
 
 inner = qb.nested_bool()
@@ -69,7 +105,29 @@ query = (
 )
 ```
 
-각 줄이 정확히 무엇을 하는지 보입니다. `add_must`는 `must`로 갑니다. `add_filter`는 `filter`로 갑니다. 추측할 필요도, 소스 코드를 뒤질 필요도 없습니다.
+각 줄이 정확히 무엇을 하는지 보입니다. `add_must`는 `must`로, `add_filter`는 `filter`로. 이미 알고 있는 ES Query DSL 구조가 코드에 그대로 드러납니다.
+
+그리고 동적 조건 조합도 깔끔합니다:
+
+```python
+qb = QueryBuilder()
+
+if keyword:
+    qb.add_must(QueryBuilder.Match.build("title", keyword, operator="and"))
+
+if date_from or date_to:
+    qb.add_filter(QueryBuilder.Range.build("date", gte=date_from, lte=date_to))
+
+if status:
+    qb.add_filter(QueryBuilder.Term.build("status", status))
+
+if exclude_test:
+    qb.add_must_not(QueryBuilder.Term.build("applicant", "테스트"))
+
+query = qb.build()
+```
+
+대괄호 지옥도 없고, `setdefault`도 없고, 수동 list 관리도 없습니다. 조건을 추가하고 build하면 끝.
 
 **코드 리뷰할 때 이게 중요합니다.** 본인이 짠 쿼리든, 동료가 짠 거든, LLM이 생성한 거든 — 누군가는 의도대로 동작하는지 검증해야 합니다. 읽기 쉬운 구조는 그 검증을 빠르게 만들어줍니다.
 
