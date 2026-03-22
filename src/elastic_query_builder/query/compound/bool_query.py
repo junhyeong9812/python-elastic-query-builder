@@ -24,6 +24,7 @@ class BoolQueryBuilder:
         self._must_not: List[Dict[str, Any]] = []
         self._filter: List[Dict[str, Any]] = []
         self._minimum_should_match: Optional[Any] = None
+        self._explicit_clauses: set = set()
 
     def add_must(self, condition: Dict[str, Any]) -> 'BoolQueryBuilder':
         """must 절에 조건을 추가합니다.
@@ -84,8 +85,6 @@ class BoolQueryBuilder:
         Returns:
             메서드 체이닝을 위한 self.
         """
-        if not hasattr(self, '_explicit_clauses'):
-            self._explicit_clauses = set()
         for clause in clauses:
             self._explicit_clauses.add(clause)
         return self
@@ -179,14 +178,19 @@ class BoolQueryBuilder:
             Elasticsearch bool 쿼리 딕셔너리.
         """
         bool_body: Dict[str, Any] = {}
-        if self._must:
-            bool_body["must"] = copy.deepcopy(self._must)
-        if self._should:
-            bool_body["should"] = copy.deepcopy(self._should)
-        if self._must_not:
-            bool_body["must_not"] = copy.deepcopy(self._must_not)
-        if self._filter:
-            bool_body["filter"] = copy.deepcopy(self._filter)
+
+        clause_map = {
+            BoolClause.MUST: ("must", self._must),
+            BoolClause.SHOULD: ("should", self._should),
+            BoolClause.MUST_NOT: ("must_not", self._must_not),
+            BoolClause.FILTER: ("filter", self._filter),
+        }
+
+        for clause_enum, (key, data) in clause_map.items():
+            if data:
+                bool_body[key] = copy.deepcopy(data)
+            elif clause_enum in self._explicit_clauses:
+                bool_body[key] = []
         if self._minimum_should_match is not None:
             bool_body["minimum_should_match"] = self._minimum_should_match
         return {"bool": bool_body}
