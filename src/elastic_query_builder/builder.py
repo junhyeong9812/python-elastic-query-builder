@@ -357,7 +357,7 @@ class QueryBuilder:
 
     def set_search_after(self, values: List[Any]) -> 'QueryBuilder':
         """커서 기반 딥 페이지네이션을 위한 search_after를 설정합니다."""
-        self._search_after = values
+        self._search_after = list(values)
         return self
 
     # ── Rescore ──
@@ -408,14 +408,14 @@ class QueryBuilder:
 
     def set_fields(self, fields: List[Any]) -> 'QueryBuilder':
         """반환할 필드 목록을 설정합니다."""
-        self._fields = fields
+        self._fields = list(fields)
         return self
 
     # ── Stored Fields ──
 
     def set_stored_fields(self, fields: List[str]) -> 'QueryBuilder':
         """반환할 stored_fields를 설정합니다."""
-        self._stored_fields = fields
+        self._stored_fields = list(fields)
         return self
 
     # ── Sort 관리 ──
